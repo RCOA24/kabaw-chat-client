@@ -1,5 +1,7 @@
 // src/utils/helpers.js
 
+// Utility functions for the chat application
+
 /**
  * Formats a timestamp into a readable 12-hour time format (e.g., "10:30 PM")
  */
