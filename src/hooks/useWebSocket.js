@@ -1,10 +1,14 @@
 // src/hooks/useWebSocket.js
+// Custom React hook to manage WebSocket connections for the chat application.
+// It handles connection status, message receiving/sending, and reconnection logic.
+// It also retrieves and provides the user's ID upon connection.
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export const useWebSocket = (url, username) => {
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState("disconnected"); // connecting, connected, disconnected
-  const [userId, setUserId] = useState(null);
+  const userIdRef = useRef(null);
   const ws = useRef(null);
 
   const connect = useCallback(() => {
@@ -24,8 +28,8 @@ export const useWebSocket = (url, username) => {
         console.log("WS Message:", data); // Requirement: Console logging
 
         // Requirement: Handle user_connected to get ID
-        if (data.type === 'user_connected' && !userId && data.user_id) {
-            setUserId(data.user_id);
+        if (data.type === 'user_connected' && !userIdRef.current && data.user_id) {
+            userIdRef.current = data.user_id;
         }
         
         setMessages((prev) => [...prev, data]);
@@ -45,7 +49,7 @@ export const useWebSocket = (url, username) => {
       console.error("WS Error:", error);
       socket.close();
     };
-  }, [url, username, userId]);
+  }, [url, username]);
 
   useEffect(() => {
     connect();
@@ -61,5 +65,5 @@ export const useWebSocket = (url, username) => {
     }
   };
 
-  return { messages, status, userId, sendMessage };
+  return { messages, status, userId: userIdRef.current, sendMessage };
 };
