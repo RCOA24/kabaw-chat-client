@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.jsx
+// Main application component for the chat client.
+// It integrates the ChatHeader and MessageList components and manages message input and sending.
+
+import { useState } from 'react';
+import { useWebSocket } from './hooks/useWebSocket';
+import ChatHeader from './components/ChatHeader';
+import MessageList from './components/MessageList';
+import { generateRandomUsername } from './utils/helpers'; 
+import './App.css';
+
+
+const USERNAME = generateRandomUsername(); 
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { messages, status, userId, sendMessage } = useWebSocket('ws://localhost:8080/ws', USERNAME);
+
+  const [inputValue, setInputValue] = useState("");
+
+  const handleSend = (e) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    sendMessage(inputValue);
+    setInputValue("");
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="chat-container">
+      <ChatHeader status={status} userId={userId} />
+      <MessageList messages={messages} currentUsername={USERNAME} />
+      <form onSubmit={handleSend} className="input-area">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Type a message..."
+          disabled={status !== "connected"}
+        />
+        <button type="submit" disabled={status !== "connected"}>
+          Send
         </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      </form>
+    </div>
+  );
 }
 
-export default App
+export default App;
