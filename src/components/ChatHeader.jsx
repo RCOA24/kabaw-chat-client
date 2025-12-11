@@ -6,7 +6,7 @@ import React from 'react';
 const ChatHeader = ({ status, userId }) => {
   return (
     <header className="chat-header">
-      <h1>Kabaw Chat</h1>
+      <h1>Kabaw.ai Chat</h1>
       <div className="status-bar">
         {/* Requirement: Connection status indicator */}
         <span className={`status-indicator ${status}`}></span>
