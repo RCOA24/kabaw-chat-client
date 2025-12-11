@@ -10,8 +10,14 @@ export const useWebSocket = (url, username) => {
   const [status, setStatus] = useState("disconnected"); // connecting, connected, disconnected
   const userIdRef = useRef(null);
   const ws = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
 
   const connect = useCallback(() => {
+    // Prevent duplicate connections
+    if (ws.current && (ws.current.readyState === WebSocket.CONNECTING || ws.current.readyState === WebSocket.OPEN)) {
+      return;
+    }
+
     setStatus("connecting");
     // Connect with query params
     const socket = new WebSocket(`${url}?username=${username}&channel=general`);
@@ -42,7 +48,7 @@ export const useWebSocket = (url, username) => {
       setStatus("disconnected");
       console.log("WS Disconnected. Retrying...");
       // Requirement: Reconnection logic
-      setTimeout(() => connect(), 3000);
+      reconnectTimeoutRef.current = setTimeout(() => connect(), 3000);
     };
 
     socket.onerror = (error) => {
@@ -54,7 +60,12 @@ export const useWebSocket = (url, username) => {
   useEffect(() => {
     connect();
     return () => {
-      if (ws.current) ws.current.close();
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (ws.current) {
+        ws.current.close();
+      }
     };
   }, [connect]);
 
